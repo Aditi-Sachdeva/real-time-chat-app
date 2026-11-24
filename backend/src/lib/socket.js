@@ -1,37 +1,114 @@
+
+import "dotenv/config";
+
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import jwt from "jsonwebtoken";
 
-const app = express();
-const server = http.createServer(app);
+export const app = express();
+export const server = http.createServer(app);
 
-const io = new Server(server, {
+const CLIENT_URL =
+  process.env.CLIENT_URL || "http://localhost:5173";
+
+export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: CLIENT_URL,
+    credentials: true,
   },
 });
 
-export function getReceiverSocketId(userId) {
-  return userSocketMap[userId];
-}
+// userId -> Set of socket IDs
+const userSocketMap = new Map();
 
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
+const getCookie = (cookieHeader, cookieName) => {
+  if (!cookieHeader) return null;
 
-io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
+  const cookies = cookieHeader.split(";");
 
-  const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id;
+  const cookie = cookies.find((item) =>
+    item.trim().startsWith(`${cookieName}=`)
+  );
 
-  // io.emit() is used to send events to all the connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  if (!cookie) return null;
 
-  socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  });
+  return decodeURIComponent(
+    cookie.trim().substring(cookieName.length + 1)
+  );
+};
+
+// Authenticate every Socket.IO connection using JWT cookie.
+io.use((socket, next) => {
+  try {
+    const token = getCookie(
+      socket.handshake.headers.cookie,
+      "jwt"
+    );
+
+    if (!token) {
+      return next(new Error("Unauthorized: Missing token"));
+    }
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    socket.data.userId = decoded.userId;
+
+    next();
+  } catch (error) {
+    next(new Error("Unauthorized: Invalid or expired token"));
+  }
 });
 
-export { io, app, server };
+export const getReceiverSocketId = (userId) => {
+  const socketIds = userSocketMap.get(userId.toString());
+
+  if (!socketIds || socketIds.size === 0) {
+    return null;
+  }
+
+  return [...socketIds];
+};
+
+io.on("connection", (socket) => {
+  const userId = socket.data.userId.toString();
+
+  console.log(`User connected: ${userId}`);
+
+  socket.join(userId);
+
+  if (!userSocketMap.has(userId)) {
+    userSocketMap.set(userId, new Set());
+  }
+
+  userSocketMap.get(userId).add(socket.id);
+
+  // Broadcast online users.
+  io.emit(
+    "getOnlineUsers",
+    Array.from(userSocketMap.keys())
+  );
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${userId}`);
+
+    const socketIds = userSocketMap.get(userId);
+
+    if (socketIds) {
+      socketIds.delete(socket.id);
+
+      // Mark user offline only when all sessions disconnect.
+      if (socketIds.size === 0) {
+        userSocketMap.delete(userId);
+      }
+    }
+
+    io.emit(
+      "getOnlineUsers",
+      Array.from(userSocketMap.keys())
+    );
+  });
+});

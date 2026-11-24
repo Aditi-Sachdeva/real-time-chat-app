@@ -1,55 +1,98 @@
+
 import { useState } from "react";
-import { useAuthStore } from "../store/useAuthStore";
 import { Camera, Mail, User } from "lucide-react";
 
+import { useAuthStore } from "../store/useAuthStore";
+
 const ProfilePage = () => {
-  const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
+  const {
+    authUser,
+    isUpdatingProfile,
+    updateProfile,
+  } = useAuthStore();
+
   const [selectedImg, setSelectedImg] = useState(null);
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      return;
+    }
 
     const reader = new FileReader();
 
-    reader.readAsDataURL(file);
-
     reader.onload = async () => {
       const base64Image = reader.result;
+
       setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
+
+      const success = await updateProfile({
+        profilePic: base64Image,
+      });
+
+      if (!success) {
+        setSelectedImg(null);
+      }
     };
+
+    reader.onerror = () => {
+      setSelectedImg(null);
+    };
+
+    reader.readAsDataURL(file);
   };
 
+  if (!authUser) return null;
+
   return (
-    <div className="h-screen pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
-        <div className="bg-base-300 rounded-xl p-6 space-y-8">
+    <main className="min-h-screen bg-base-100 px-4 pb-10 pt-24">
+      <div className="mx-auto w-full max-w-2xl">
+
+        <div className="space-y-8 rounded-2xl border border-base-300 bg-base-200 p-5 shadow-sm sm:p-8">
+
+          {/* Heading */}
           <div className="text-center">
-            <h1 className="text-2xl font-semibold ">Profile</h1>
-            <p className="mt-2">Your profile information</p>
+            <h1 className="text-2xl font-bold">
+              Profile
+            </h1>
+
+            <p className="mt-2 text-sm text-base-content/60">
+              Your profile information
+            </p>
           </div>
 
-          {/* avatar upload section */}
-
+          {/* Profile Picture */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                src={
+                  selectedImg ||
+                  authUser.profilePic ||
+                  "/avatar.png"
+                }
                 alt="Profile"
-                className="size-32 rounded-full object-cover border-4 "
+                className="size-32 rounded-full border-4 border-base-100 object-cover shadow-md"
               />
+
               <label
                 htmlFor="avatar-upload"
                 className={`
-                  absolute bottom-0 right-0 
-                  bg-base-content hover:scale-105
-                  p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                  absolute bottom-1 right-1 flex size-10 cursor-pointer
+                  items-center justify-center rounded-full
+                  bg-primary text-primary-content shadow-md
+                  transition-transform hover:scale-105
+                  ${
+                    isUpdatingProfile
+                      ? "pointer-events-none animate-pulse opacity-70"
+                      : ""
+                  }
                 `}
               >
-                <Camera className="w-5 h-5 text-base-200" />
+                <Camera className="size-5" />
+
                 <input
                   type="file"
                   id="avatar-upload"
@@ -60,45 +103,78 @@ const ProfilePage = () => {
                 />
               </label>
             </div>
-            <p className="text-sm text-zinc-400">
-              {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
+
+            <p className="text-center text-sm text-base-content/60">
+              {isUpdatingProfile
+                ? "Uploading profile picture..."
+                : "Click the camera icon to update your photo"}
             </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <User className="w-4 h-4" />
+          {/* User Information */}
+          <div className="space-y-5">
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-base-content/60">
+                <User className="size-4" />
                 Full Name
               </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
+
+              <p className="rounded-lg border border-base-300 bg-base-100 px-4 py-3 font-medium">
+                {authUser.fullName}
+              </p>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-base-content/60">
+                <Mail className="size-4" />
                 Email Address
               </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
+
+              <p className="break-all rounded-lg border border-base-300 bg-base-100 px-4 py-3 font-medium">
+                {authUser.email}
+              </p>
+            </div>
+
+          </div>
+
+          {/* Account Information */}
+          <div className="rounded-xl border border-base-300 bg-base-100 p-5">
+            <h2 className="mb-4 text-lg font-semibold">
+              Account Information
+            </h2>
+
+            <div className="space-y-3 text-sm">
+
+              <div className="flex items-center justify-between gap-4 border-b border-base-300 py-2">
+                <span className="text-base-content/60">
+                  Member Since
+                </span>
+
+                <span className="font-medium">
+                  {authUser.createdAt
+                    ? new Date(authUser.createdAt).toLocaleDateString()
+                    : "N/A"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 py-2">
+                <span className="text-base-content/60">
+                  Account Status
+                </span>
+
+                <span className="font-medium text-success">
+                  Active
+                </span>
+              </div>
+
             </div>
           </div>
 
-          <div className="mt-6 bg-base-300 rounded-xl p-6">
-            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                <span>Member Since</span>
-                <span>{authUser.createdAt?.split("T")[0]}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span>Account Status</span>
-                <span className="text-green-500">Active</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
+
 export default ProfilePage;
