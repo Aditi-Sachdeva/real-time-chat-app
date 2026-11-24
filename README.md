@@ -1,15 +1,19 @@
 # Real-Time Chat Application
 
-A full-stack real-time messaging application that allows users to communicate through one-to-one conversations. It provides instant message delivery, live online-user status, persistent chat history, profile customization, and multiple UI themes.
+A full-stack real-time messaging application that enables users to communicate through one-to-one conversations. It features instant message delivery, live online-user status, persistent chat history, profile customization, and multiple UI themes.
+
+## Live Demo
+
+**[Open Real-Time Chat Application](https://real-time-chat-app-hmg9.onrender.com)**
 
 ## Features
 
-- **User Authentication:** Secure signup, login, and logout functionality using JWT and HTTP-only cookies.
+- **User Authentication:** Secure signup, login, and logout using JWT and HTTP-only cookies.
 - **Real-Time Messaging:** Send and receive messages instantly using Socket.IO without refreshing the page.
-- **Online User Status:** See which users are currently online.
+- **Online User Status:** View users who are currently online.
 - **Persistent Chat History:** Store and retrieve conversations using MongoDB.
 - **Profile Management:** Update profile information and upload profile pictures.
-- **Image Uploads:** Store uploaded images using Cloudinary.
+- **Image Uploads:** Store and manage uploaded images using Cloudinary.
 - **Theme Customization:** Choose from multiple application themes.
 - **Protected Routes:** Restrict access to authenticated users.
 
@@ -55,7 +59,7 @@ real-time-chat-app/
 
 ## Getting Started
 
-Follow these steps to run the project locally.
+Follow these instructions to run the application locally.
 
 ### Prerequisites
 
@@ -72,12 +76,14 @@ cd real-time-chat-app
 
 ### 2. Backend Setup
 
+Navigate to the backend directory and install dependencies:
+
 ```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file inside the `backend` directory:
+Create a `.env` file inside the `backend` directory and configure the following environment variables:
 
 ```env
 PORT=5001
@@ -98,13 +104,11 @@ Start the backend development server:
 npm run dev
 ```
 
-The backend will run on:
-
-`http://localhost:5001`
+The backend will run at `http://localhost:5001`.
 
 ### 3. Frontend Setup
 
-Open another terminal:
+Open another terminal and navigate to the frontend directory:
 
 ```bash
 cd frontend
@@ -117,9 +121,7 @@ Start the frontend development server:
 npm run dev
 ```
 
-The frontend will run on:
-
-`http://localhost:5173`
+The frontend will run at `http://localhost:5173`.
 
 ## Application API
 
@@ -127,7 +129,7 @@ The backend provides REST API endpoints for authentication, profile management, 
 
 | Module | Functionality |
 |---|---|
-| Authentication | Signup, login, logout, session verification |
+| Authentication | Signup, login, logout, and session verification |
 | User Management | Fetch users and update profiles |
 | Messaging | Send messages and retrieve conversations |
 
@@ -142,16 +144,28 @@ Socket.IO enables bidirectional communication between connected clients.
 - New messages are delivered instantly to the intended recipient.
 - Message history is persisted in MongoDB.
 
-## Build
+## Production Build
 
-To create a production build of the frontend:
+To generate an optimized production build of the frontend:
 
 ```bash
 cd frontend
 npm run build
 ```
 
-The production-ready files are generated in the `frontend/dist` directory.
+The generated production files are stored in `frontend/dist`.
+
+## Deployment
+
+The application is deployed on **Render** as a single web service.
+
+- The React frontend is built using Vite.
+- The Express backend serves the production frontend build.
+- REST API requests and Socket.IO connections are handled by the backend.
+- MongoDB Atlas provides persistent database storage.
+- Cloudinary handles image storage.
+
+**Live Application:** [https://real-time-chat-app-hmg9.onrender.com](https://real-time-chat-app-hmg9.onrender.com)
 
 ## Security
 
@@ -161,15 +175,12 @@ The production-ready files are generated in the `frontend/dist` directory.
 - Protected backend routes.
 - Environment variables for sensitive configuration.
 
-## Future Deployment
-
-The application is prepared for production deployment. The live application URL will be added here after deployment.
-
 ## Author
 
 **Aditi Sachdeva**
 
-GitHub: [Aditi-Sachdeva](https://github.com/Aditi-Sachdeva)
+- **GitHub:** [Aditi-Sachdeva](https://github.com/Aditi-Sachdeva)
+- **Repository:** [Real-Time Chat Application](https://github.com/Aditi-Sachdeva/real-time-chat-app)
 
 ---
 
